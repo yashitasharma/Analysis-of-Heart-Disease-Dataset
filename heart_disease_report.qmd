@@ -1,0 +1,532 @@
+---
+title: "Final Project: *Yashita Sharma*"
+format: 
+  html: 
+    toc: true
+    toc_float: true
+  pdf: default
+  docx: default
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+# Analysis of Heart Disease Dataset
+
+**Data Source:** UC Irvine Machine Learning Repository.
+
+### **Introduction**
+
+All published studies refer to employing a subset of 14 of the 76 attributes in this database. Specifically, to date, no other database has been utilized by machine learning researchers than the Cleveland one. The patient's presence of heart disease is indicated in the "goal" field. From 0 (no presence) to 4, it has integer values. The focus of Cleveland database experiments has been on trying to differentiate presence (values 1, 2, 3, 4) from absence (value 0).\
+Recently, the patients' names and social security numbers were deleted from the database and replaced with dummy information.
+
+```{r, echo=FALSE}
+# Load necessary libraries
+library(readr)
+library(dplyr)
+library(ggplot2)
+
+# Load the dataset
+url <- "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
+heart_data <- read.csv(url, header = FALSE)
+
+# Assign column names
+colnames(heart_data) <- c("age", "sex", "cp", "trestbps", "chol", "fbs", "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal", "target")
+
+# View the structure of the dataset
+str(heart_data)
+
+# Summary statistics for numerical variables
+summary_stats <- summary(heart_data[, c("age", "trestbps", "chol", "thalach", "oldpeak")])
+print(summary_stats)
+
+# Histograms for numerical variables with different colors
+histograms <- lapply(heart_data[, c("age", "trestbps", "chol", "thalach", "oldpeak")], function(x) {
+  breaks <- seq(min(x), max(x), length.out = length(unique(x)) + 1)
+  colors <- rainbow(length(breaks), start = 0, end = 1)
+  hist(x, main = "Histogram", breaks = breaks, col = colors, xlab = names(x))
+})
+print(histograms)
+
+```
+
+```{r, echo=FALSE}
+# Explore the structure of the dataset
+str(heart_data)
+
+# Summary statistics
+summary(heart_data)
+
+```
+
+**Dataset Description**
+
+The Heart Disease dataset consists of 303 instances and 14 attributes, including:
+
+-   Age: Age of the patient
+
+-   Sex: Gender of the patient (1 = male, 0 = female)
+
+-   CP: Chest pain type (1 = typical angina, 2 = atypical angina, 3 = non-anginal pain, 4 = asymptomatic)
+
+-   Resting blood pressure (mm Hg)
+
+-   Cholesterol level (mg/dl)
+
+-   Fasting blood sugar \> 120 mg/dl (1 = true, 0 = false)
+
+-   Resting electrocardiographic results (0 = normal, 1 = ST-T wave abnormality, 2 = probable or definite left ventricular hypertrophy)
+
+-   Maximum heart rate achieved
+
+-   Exercise induced angina (1 = yes, 0 = no)
+
+-   ST depression induced by exercise relative to rest
+
+-   Slope of the peak exercise ST segment
+
+-   Number of major vessels colored by fluoroscopy (0-3)
+
+-   Thalassemia type (3 = normal, 6 = fixed defect, 7 = reversable defect)
+
+-   Target: Presence of heart disease (0 = no heart disease, 1 = heart disease)
+
+**Summary Statistics:**
+
+Age, maximal heart rate attained (thalach), serum cholesterol level (chol), resting blood pressure (trestbps), and ST depression brought on by exercise in comparison to rest (oldpeak) were among the numerical factors for which summary statistics were calculated.\
+Patients' ages range from 29 to 77 years old, with an average age of roughly 54. Resting Blood Pressure (trestbps): This measurement ranges from 94 to 200 mm Hg, with an average of 131 mm Hg. Serum Cholesterol Level (chol): With a mean of roughly 246 mg/dl, the serum cholesterol level fluctuates greatly. The highest heart rate attained (in thalach): With a mean of roughly 150 beats per minute, the maximum heart rate attained varies from 71 to 202 beats per minute. ST Depression (oldpeak): The ST depression induced by exercise relative to rest ranges from 0 to 6.2, with a mean of approximately 1.04.
+
+To see the distributions of each numerical variable, histogram is plotted. To distinguish between different values' frequencies, the histograms were color-coded.\
+Age: The age histogram displays a comparatively normal distribution, with the 50–60 age range exhibiting the highest frequency.\
+Resting Blood Pressure (trestbps): There appears to be a small right-skewed distribution in the resting blood pressure distribution, with the highest frequency occurring between 120 and 140 mm Hg.\
+Serum Cholesterol Level (chol): The distribution of the serum cholesterol level histogram is biased to the right, with the highest frequency found in the 200–300 mg/dl region.\
+Maximum Heart Rate Achieved (thalach): The maximum heart rate attained seems to follow a roughly normal distribution, with the peak frequency occurring between 150 and 160 beats per minute. ST Depression (oldpeak): The histogram of ST depression induced by exercise relative to rest shows a right-skewed distribution, with the highest frequency observed in the range of 0 to 1.
+
+### Distribution of Age by Heart Disease:
+
+Here's what each part of the output represents:
+
+```{r, echo=FALSE}
+
+# Create boxplots for age, trestbps, chol, thalach, and oldpeak
+boxplots <- lapply(heart_data[, c("age", "trestbps", "chol", "thalach", "oldpeak")], 
+                   function(x) {
+                     colors <- rainbow(1)  
+                     boxplot(x, 
+                             main = "Distribution of Age by Heart Disease", 
+                             sub = paste("Variable:", names(x)),  # Add sub-title
+                             col = colors, 
+                             border = "black", 
+                             xlab = "Heart Disease (0: No, 1: Yes)", 
+                             ylab = "Value"
+                     )
+                   }
+)
+
+# Print the boxplots
+print(boxplots)
+
+```
+
+The interquartile range (IQR), which includes the middle 50% of the data, is represented by the box. The median age is indicated by the line inside the box.\
+Whiskers: The whiskers reach the data points that are 1.5 times the interquartile range (IQR) between the first and third quartiles from the box. Plotting of individual data points is reserved for outliers, or any data points that extend past the whiskers. Plotting of Data Points: Any data point that is not within the whiskers is labeled as an outlier. Heart disease's x-axis: The status of cardiac disease is represented by this axis. It is marked as "0: No, 1: Yes" in your code. A particular heart disease status (0 for no heart disease, 1 for heart illness) is represented by each box plot. y-axis (Age): This axis represents the age values. It shows the range of ages observed in the dataset.
+
+### **Characteristic Statistics**
+
+**Frequency Distribution of Chest Pain Type**:
+
+```{r, echo=FALSE}
+# Frequency distribution for categorical variables
+
+# Chest Pain Type (cp)
+cp_freq <- table(heart_data$cp)
+barplot(cp_freq, main = "Frequency Distribution of Chest Pain Type", xlab = "Chest Pain Type", ylab = "Frequency", col = rainbow(length(cp_freq)))
+```
+
+The distribution of the various types of chest pain in the dataset is shown in the "Frequency Distribution of Chest Pain Type" plot. With a count of 140, the fourth form of chest discomfort has the highest prevalence among these types. This suggests that among the individuals included in the study, this specific kind of chest pain manifests itself most frequently.
+
+**Frequency Distribution of Sex**:
+
+```{r, echo=FALSE}
+# Sex
+sex_freq <- table(heart_data$sex)
+barplot(sex_freq, main = "Frequency Distribution of Sex", xlab = "Sex", ylab = "Frequency", col = rainbow(length(sex_freq)))
+```
+
+The gender distribution in the dataset is shown in the "Frequency Distribution of Sex" graphic. The data indicates that there are around twice as many women in the group as men. This shows that there are more examples of female representation than male representation in the dataset.
+
+#### Age Vs Cholesterol Level
+
+```{r, echo=FALSE}
+# Convert target variable to a factor (assuming it's not already)
+heart_data$target <- as.factor(heart_data$target)
+
+# Plot scatterplot with different colors for each target value
+ggplot(heart_data, aes(x = age, y = chol, color = target)) +
+  geom_point() +
+  labs(title = "Scatter Plot of Age vs. Cholesterol Level",
+       x = "Age", y = "Cholesterol Level")
+
+```
+
+This code produces a scatter plot of age against cholesterol level, with each point having a different color depending on the target variable. If the target variable wasn't already in that format, it has been changed in this instance to a factor variable.\
+An observation from the dataset is represented by each point on the scatter plot. Age is shown by the x-axis, cholesterol level is represented by the y-axis, and each point's color denotes a distinct target variable category.\
+We may see possible correlations or trends between the target variable, cholesterol level, and age with this graphic.
+
+#### correlation between different variables in the heart disease dataset
+
+```{r, echo=FALSE}
+# Load necessary libraries
+library(corrplot)
+
+# Load the dataset
+url <- "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
+heart_data <- read.csv(url, header = FALSE)
+
+# Assign column names
+colnames(heart_data) <- c("age", "sex", "cp", "trestbps", "chol", "fbs", "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal", "target")
+
+# Convert columns to numeric
+heart_data <- apply(heart_data, 2, as.numeric)
+
+# Calculate correlation matrix
+correlation_matrix <- cor(heart_data[, -c(1, 14)], use = "pairwise.complete.obs")
+
+# Create correlation plot
+corrplot(correlation_matrix, method = "color", type = "upper", 
+         tl.col = "black", tl.srt = 45)
+
+
+```
+
+Color-coded Cells: Every cell in the diagram shows how two variables are correlated. Each cell's color indicates the direction and strength of the link. hues like red typically imply negative correlation, whereas hues like blue typically suggest positive correlation. The degree of association is shown by the color's intensity.\
+Upper Triangular Matrix: The correlation matrix's upper triangular matrix is the only one displayed in the plot. This is due to the symmetry of the correlation matrix, which makes it unnecessary to display the top and lower triangles.
+
+From this we can se thal-sex and oldpeak-slope have higher intensity of correlation contrary to other parameters.
+
+\
+**Absent Values and Outliers:**\
+
+```{r, echo=FALSE}
+# Load necessary libraries
+library(dplyr)
+
+# Load the dataset
+url <- "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
+heart_data <- read.csv(url, header = FALSE)
+
+# Assign column names
+colnames(heart_data) <- c("age", "sex", "cp", "trestbps", "chol", "fbs", "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal", "target")
+
+# Count missing values in each column
+missing_values <- colSums(is.na(heart_data))
+print("Missing Values:")
+print(missing_values)
+
+# Detect outliers using IQR
+# Assuming numerical columns are "age", "trestbps", "chol", "thalach", and "oldpeak"
+numerical_cols <- c("age", "trestbps", "chol", "thalach", "oldpeak")
+outliers <- lapply(heart_data[, numerical_cols], function(x) {
+  q1 <- quantile(x, 0.25)
+  q3 <- quantile(x, 0.75)
+  iqr <- q3 - q1
+  lower_limit <- q1 - 1.5 * iqr
+  upper_limit <- q3 + 1.5 * iqr
+  outlier_indices <- which(x < lower_limit | x > upper_limit)
+  return(outlier_indices)
+})
+print("Outlier Counts:")
+print(sapply(outliers, length))
+
+```
+
+The values below represent counts of outliers found in each numerical column, according to the output "Outlier Counts:".\
+The count of 0 in the "age" column indicates that there are no outliers.\
+Nine outliers were found in the "trestbps" column, which represents resting blood pressure.\
+Five outliers have been found for the serum cholesterol (or "chol" column).\
+One outlier has been found for the "thalach" column (highest heart rate reached).\
+There are five outliers found in the "oldpeak" column (ST depression brought on by activity compared to rest).\
+These counts indicate the proportion of observations that are beyond the range that the interquartile range method for outlier detection uses to identify observations. When data points are markedly different from the majority of observations, they may be outliers and indicate potentially intriguing data points that call for additional investigation.
+
+### **Distribution of Age by Heart Disease Status**
+
+```{r, echo=FALSE}
+# Box plot of age by heart disease status
+boxplot(age ~ target, 
+        data = heart_data, 
+        main = "Distribution of Age by Heart Disease Status",
+        xlab = "Heart Disease (0: No, 1: Yes)",
+        ylab = "Age",
+        col = "lightblue"  # Change the color to matte blue
+)
+
+
+```
+
+About the interpretation:\
+According to the box plot, the median age of people with heart disease ("1") is somewhat greater than that of people without heart disease ("0").\
+A wider age range and potentially greater age variability among those with heart disease are indicated by the box labeled "1"), which looks to be slightly higher and wider than the box labeled "0") for those without heart disease.\
+Furthermore, among those with heart disease, there are some outliers in the 55–65 age range. These individuals are indicated by black dots outside of the whiskers. This implies that there are people in this age group who have had a heart attack.
+
+Trains a random forest model using the heart disease dataset and then visualizes the importance of each feature using the vip package. wherein MeanDecreaseGini is highest for Thalach.
+
+```{r, echo=FALSE}
+# Load required libraries
+library(randomForest)
+library(vip)
+
+# Load the dataset directly from the URL
+url <- "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
+heart_data <- read.csv(url, header = FALSE)
+
+# Assign column names
+colnames(heart_data) <- c("age", "sex", "cp", "trestbps", "chol", "fbs", "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal", "target")
+
+# Preprocess the data
+# Assuming the target variable is named 'target'
+X <- heart_data[, -which(names(heart_data) == "target")]
+y <- heart_data$target
+
+# Convert the target variable to a factor with two levels
+y <- as.factor(y)
+
+# Train a random forest model
+rf_model <- randomForest(X, y)
+
+# Plot feature importance with custom colors for each reading
+var_imp <- importance(rf_model)
+varImpPlot(rf_model, col = rainbow(ncol(X)))
+
+```
+
+#### Distribution of Cholestrol by Heart Disease Status
+
+```{r, echo=FALSE}
+# Convert heart_data to a data frame if it's not already in that format
+heart_data <- as.data.frame(heart_data)
+
+# Violin plot of cholesterol by heart disease status
+ggplot(heart_data, aes(x = as.factor(target), y = chol, fill = as.factor(target))) +
+  geom_violin() +
+  labs(title = "Distribution of Cholesterol by Heart Disease Status",
+       x = "Heart Disease (0: No, 1: Yes)",
+       y = "Cholesterol") +
+  scale_fill_discrete(name = "Heart Disease")
+
+```
+
+The distribution of cholesterol levels in people with and without heart disease is shown by each half. The locations with higher density, where most of the data points are located, are shown by the broader parts of the violins, which we can see is from 200-300 cholesterol bracket. This figure facilitates easy comparisons between the two groups by visualizing the association between heart disease state and cholesterol levels.
+
+#### Distribution of resting blood pressure (trestbps) among individuals with and without heart disease.
+
+```{r, echo=FALSE}
+# Box plot of maximum heart rate by heart disease status
+boxplot(trestbps ~ target, data = heart_data, 
+        main = "Distribution of Resting Blood Pressure by Heart Disease Status",
+        xlab = "Heart Disease (0: No, 1: Yes)",
+        ylab = "Resting Blood Pressure")
+
+
+```
+
+It is simple to spot any variations or patterns in the resting blood pressure of the two groups by examining the box plot, which shows important data like the median, quartiles, and any outliers. Herein heart disease are prone on a median of 130-140 of resting blood pressure.
+
+### **Model's Performance**
+
+***Logistic Regression - Random Forest***
+
+To compare the observed and predicted values visually and assess the model's performance
+
+```{r, echo=FALSE}
+# Load required libraries
+library(caret)
+library(randomForest)
+library(ggplot2)
+
+# Load the dataset
+url <- "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
+heart_data <- read.csv(url, header = FALSE)
+
+# Assign column names
+colnames(heart_data) <- c("age", "sex", "cp", "trestbps", "chol", "fbs", "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal", "target")
+
+# Convert the target variable to binary format (0 for no heart disease, 1 for presence of heart disease)
+heart_data$target <- ifelse(heart_data$target > 0, 1, 0)
+
+# Preprocess the data (handle missing values, scale numerical features, encode categorical variables, etc.)
+
+# Split the dataset into training and testing sets
+set.seed(123) # for reproducibility
+train_index <- createDataPartition(heart_data$target, p = 0.7, list = FALSE)
+train_data <- heart_data[train_index, ]
+test_data <- heart_data[-train_index, ]
+
+# Train machine learning models
+# Logistic Regression
+logistic_model <- glm(target ~ ., data = train_data, family = "binomial")
+
+# Random Forest
+rf_model <- randomForest(target ~ ., data = train_data)
+
+# Evaluate model performance
+# Define a function to calculate metrics
+calculate_metrics <- function(model, data) {
+  predictions <- predict(model, data, type = "response")
+  confusion_matrix <- table(data$target, predictions > 0.5)
+  accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+  precision <- confusion_matrix[2, 2] / sum(confusion_matrix[, 2])
+  recall <- confusion_matrix[2, 2] / sum(confusion_matrix[2, ])
+  return(list(accuracy = accuracy, precision = precision, recall = recall))
+}
+
+# Evaluate logistic regression model
+logistic_metrics <- calculate_metrics(logistic_model, test_data)
+
+# Evaluate random forest model
+rf_metrics <- calculate_metrics(rf_model, test_data)
+
+# Print individual model metrics
+print("Logistic Regression Metrics:")
+print(logistic_metrics)
+
+print("Random Forest Metrics:")
+print(rf_metrics)
+
+# Create a data frame for model metrics
+model_metrics <- data.frame(
+  Model = c("Logistic Regression", "Random Forest"),
+  Accuracy = c(logistic_metrics$accuracy, rf_metrics$accuracy),
+  Precision = c(logistic_metrics$precision, rf_metrics$precision),
+  Recall = c(logistic_metrics$recall, rf_metrics$recall)
+)
+
+# Print summary table
+print("Model Performance Summary:")
+print(model_metrics)
+
+# Create heatmap to visualize model metrics
+# Convert model metrics data frame to long format for heatmap
+library(tidyr)
+model_metrics_long <- pivot_longer(model_metrics, -Model, names_to = "Metric", values_to = "Value")
+
+# Plot heatmap
+ggplot(model_metrics_long, aes(Model, Metric, fill = Value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "lightblue", high = "darkblue") +
+  labs(title = "Model Performance Comparison",
+       x = "Model",
+       y = "Metric",
+       fill = "Value") +
+  theme_minimal()
+
+```
+
+**Logistic Regression Metrics:**\
+Recall: 0.92\
+Accuracy: 0.90\
+Accuracy: (Said to be high based on the statement; not provided)\
+Based on these measures, the logistic regression model produced results with an accuracy of 0.90 and a recall of 0.92. A recall of 0.92 indicates that the model accurately detected 92% of the positive events, such as cases involving heart illness. Comparably, 90% of the cases that were anticipated to be positive turned out to be positive, according to a precision of 0.90.\
+Based on these measurements, it can be concluded that the precision and recall of the logistic regression model were both satisfactory. Furthermore, if the accuracy measure is also given and it is high, it would bolster the claim that the overall performance (accuracy) of the logistic regression model is superior to Random Forest.
+
+\
+***Random Forest - SVM***
+
+```{r, echo=FALSE}
+# Load required libraries
+library(caret)
+library(e1071)          # for SVM
+library(randomForest)
+library(ggplot2)
+
+# Load the dataset
+url <- "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
+heart_data <- read.csv(url, header = FALSE)
+
+# Assign column names
+colnames(heart_data) <- c("age", "sex", "cp", "trestbps", "chol", "fbs", "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal", "target")
+
+# Convert the target variable to binary format (0 for no heart disease, 1 for presence of heart disease)
+heart_data$target <- ifelse(heart_data$target > 0, 1, 0)
+
+# Preprocess the data (handle missing values, scale numerical features, encode categorical variables, etc.)
+
+# Split the dataset into training and testing sets
+set.seed(123) # for reproducibility
+train_index <- createDataPartition(heart_data$target, p = 0.7, list = FALSE)
+train_data <- heart_data[train_index, ]
+test_data <- heart_data[-train_index, ]
+
+# Train machine learning models
+# Support Vector Machine (SVM)
+svm_model <- svm(target ~ ., data = train_data)
+
+# Random Forest
+rf_model <- randomForest(target ~ ., data = train_data)
+
+# Evaluate model performance
+# Define a function to calculate metrics
+calculate_metrics <- function(model, data) {
+  predictions <- predict(model, data)
+  confusion_matrix <- table(data$target, predictions)
+  accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+  precision <- confusion_matrix[2, 2] / sum(confusion_matrix[, 2])
+  recall <- confusion_matrix[2, 2] / sum(confusion_matrix[2, ])
+  return(list(accuracy = accuracy, precision = precision, recall = recall))
+}
+
+# Evaluate SVM model
+svm_metrics <- calculate_metrics(svm_model, test_data)
+
+# Evaluate random forest model
+rf_metrics <- calculate_metrics(rf_model, test_data)
+
+# Print individual model metrics
+print("SVM Metrics:")
+print(svm_metrics)
+
+print("Random Forest Metrics:")
+print(rf_metrics)
+
+# Create a data frame for model metrics
+model_metrics <- data.frame(
+  Model = c("SVM", "Random Forest"),
+  Accuracy = c(svm_metrics$accuracy, rf_metrics$accuracy),
+  Precision = c(svm_metrics$precision, rf_metrics$precision),
+  Recall = c(svm_metrics$recall, rf_metrics$recall)
+)
+
+# Print summary table
+print("Model Performance Summary:")
+print(model_metrics)
+
+# Create heatmap to visualize model metrics
+# Convert model metrics data frame to long format for heatmap
+library(tidyr)
+model_metrics_long <- pivot_longer(model_metrics, -Model, names_to = "Metric", values_to = "Value")
+
+# Plot heatmap
+ggplot(model_metrics_long, aes(Model, Metric, fill = Value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "lightblue", high = "darkblue") +
+  labs(title = "Model Performance Comparison",
+       x = "Model",
+       y = "Metric",
+       fill = "Value") +
+  theme_minimal()
+
+```
+
+Heart disease prediction showed promise for both Random Forest and SVM models.\
+When it came to accuracy and other evaluation criteria, the Random Forest model fared better than the SVM model.\
+Age, maximal heart rate, and ST depression were found to be significant factors in the prediction of heart disease.
+
+**Conclusion:**\
+To sum up, this effort effectively examined the Heart illness dataset and created prediction models for the identification of heart illness. The Random Forest model outperformed the SVM model in terms of performance. The knowledge gathered from this research may help medical professionals identify and treat heart disease earlier.
+
+**Future Work :**
+
+Real-time risk assessment of heart disease by the application of predictive algorithms in clinical settings.
+
+**Referenced terms:** <https://archive.ics.uci.edu/dataset/45/heart+disease>
+
+Only 14 attributes used: 1. #3 (age) 2. #4 (sex) 3. #9 (cp) 4. #10 (trestbps) 5. #12 (chol) 6. #16 (fbs) 7. #19 (restecg) 8. #32 (thalach) 9. #38 (exang) 10. #40 (oldpeak) 11. #41 (slope) 12. #44 (ca) 13. #51 (thal) 14. #58 (num)
